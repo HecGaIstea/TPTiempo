@@ -13,10 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.example.tptiempo.repository.modelos.ListForecast
+import com.github.PhilJay.charting.charts.LineChart
+import com.github.PhilJay.charting.data.Entry
+import com.github.PhilJay.charting.data.LineData
+import com.github.PhilJay.charting.data.LineDataSet
 import kotlinx.coroutines.launch
 
 @Composable
