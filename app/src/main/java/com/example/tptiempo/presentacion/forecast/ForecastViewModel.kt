@@ -4,14 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tptiempo.repository.Repositorio
 import com.example.tptiempo.repository.modelos.ListForecast
+import com.example.tptiempo.router.Router
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ForecastViewModel(private val repositorio: Repositorio) : ViewModel() {
 
+
+class ForecastViewModel(
+    private val repositorio: Repositorio,
+    private val router: Router,
+    private val nombre: String
+) : ViewModel() {
     private val _estado = MutableStateFlow(ForecastEstado())
-    val estado: StateFlow<ForecastEstado> get() = _estado
+    val estado: StateFlow<ForecastEstado> = _estado
 
     fun enviarIntencion(intencion: ForecastIntencion) {
         when (intencion) {
@@ -19,15 +25,18 @@ class ForecastViewModel(private val repositorio: Repositorio) : ViewModel() {
         }
     }
 
-    private fun traerPronostico(nombre: String) {
+    private fun traerPronostico(ciudad: String) {
         viewModelScope.launch {
             _estado.value = ForecastEstado(isLoading = true)
+
             try {
-                val pronostico = repositorio.traerPronostico(nombre)
-                _estado.value = ForecastEstado(forecast = pronostico)
+                val forecast = repositorio.traerPronostico(ciudad) // Llama al método adecuado en tu Repositorio
+                _estado.value = ForecastEstado(forecast = forecast)
             } catch (e: Exception) {
-                _estado.value = ForecastEstado(error = "Error al traer el pronóstico")
+                _estado.value = ForecastEstado(error = e.message)
             }
         }
     }
 }
+
+

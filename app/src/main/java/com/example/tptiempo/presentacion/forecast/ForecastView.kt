@@ -1,5 +1,6 @@
 package com.example.tptiempo.presentacion.forecast
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,61 +12,113 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.github.mikephil.charting.charts.LineChart
-import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
-import com.github.mikephil.charting.data.LineDataSet
+import com.example.tptiempo.repository.modelos.ListForecast
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.runtime.*
+
 
 @Composable
 fun ForecastGraph(forecast: List<ListForecast>) {
-    AndroidView(
-        factory = { context ->
-            LineChart(context).apply {
-                description.isEnabled = false
+    Canvas(modifier = Modifier
+        .fillMaxWidth()
+        .height(200.dp)
+        .padding(16.dp)
+        .background(Color.Yellow, shape = RoundedCornerShape(8.dp))) {
+        val spacing = size.width / (forecast.size - 1)
+        val maxTemp = forecast.maxOf { it.main.temp_max }
+        val minTemp = forecast.minOf { it.main.temp_min }
+
+        drawIntoCanvas { canvas ->
+            forecast.forEachIndexed { index, forecast ->
+                val x = index * spacing
+                val y = size.height - ((forecast.main.temp_max - minTemp) / (maxTemp - minTemp) * size.height)
+                drawCircle(
+                    color = Color.Blue,
+                    radius = 5.dp.toPx(),
+                    center = androidx.compose.ui.geometry.Offset(x, y),
+                    style = Stroke(width = 3.dp.toPx())
+                )
             }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        update = { chart ->
-            val entries = forecast.mapIndexed { index, listForecast ->
-                Entry(index.toFloat(), listForecast.main.temp_max)
-            }
-            val dataSet = LineDataSet(entries, "Temperatura Máxima")
-            val lineData = LineData(dataSet)
-            chart.data = lineData
-            chart.invalidate() // refresh
         }
-    )
+    }
 }
 
 @Composable
-fun ForecastView(forecastViewModel: ForecastViewModel = viewModel()) {
+fun ForecastView(
+    forecastViewModel: ForecastViewModel,
+    onAction: (ForecastIntencion) -> Unit
+) {
     val estado = forecastViewModel.estado.collectAsState().value
     val scope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        // Llama a ForecastGraph para mostrar el gráfico
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Green)
+            .padding(16.dp)
+    ) {
         if (estado.isLoading) {
-            Text("Cargando...")
+            Text("Cargando...", color = Color.Blue)
         } else if (estado.error != null) {
-            Text("Error: ${estado.error}")
+            Text("Error: ${estado.error}", color = Color.Red)
         } else if (estado.forecast.isNotEmpty()) {
             ForecastGraph(estado.forecast)
             LazyColumn {
                 items(estado.forecast) { item ->
-                    Text(text = "Fecha: ${item.dt}")
-                    Text(text = "Temperatura: ${item.main.temp}°C")
-                    Text(text = "Condición: ${item.weather[0].description}")
+                    Text(
+                        text = "Fecha: ${item.dt}",
+                        style = TextStyle(fontSize = 16.sp, color = Color.Black)
+                    )
+                    Text(
+                        text = "Temperatura: ${item.main.temp}°C",
+                        style = TextStyle(fontSize = 14.sp, color = Color.Black)
+                    )
+                    Text(
+                        text = "Condición: ${item.weather[0].description}",
+                        style = TextStyle(fontSize = 14.sp, color = Color.Gray)
+                    )
                 }
             }
         }
+
+        // Logs de depuración
+        Text(text = "Estado: ${estado.forecast.size} pronósticos cargados", color = Color.Green)
     }
 
-    // Aquí se puede iniciar la carga del pronóstico usando el nombre de la ciudad
-    scope.launch {
-        forecastViewModel.enviarIntencion(ForecastIntencion.TraerPronostico("Buenos Aires"))
+    LaunchedEffect(Unit) {
+        scope.launch {
+            onAction(ForecastIntencion.TraerPronostico("Buenos Aires"))
+        }
     }
 }
+
+
+@Preview
+@Composable
+fun PreviewForecastView() {
+    ForecastView()
+}
+
+fun ForecastView() {
+    TODO("Not yet implemented")
+}
+
+
+
+
+
+
+
+
 
