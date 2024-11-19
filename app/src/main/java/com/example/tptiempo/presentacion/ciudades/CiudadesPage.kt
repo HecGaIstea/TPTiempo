@@ -19,8 +19,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-
+import com.example.tptiempo.router.Ruta
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 @Composable
 fun CiudadesPage(
@@ -32,13 +34,25 @@ fun CiudadesPage(
             router = Enrutador(navHostController)
         )
     )
+
     CiudadesView(
         ciudadViewModel = viewModel,
         onCitySelected = { ciudadName ->
+
             viewModel.enviarIntencion(CiudadIntencion.BuscarCiudad(ciudadName))
+
+            // Navega a ClimaPage después de actualizar el estado con la ciudad seleccionada
+            val ciudadSeleccionada = viewModel.estado.value.ciudades.find { it.name == ciudadName }
+            if (ciudadSeleccionada != null) {
+                val lat = ciudadSeleccionada.lat
+                val lon = ciudadSeleccionada.lon
+                navHostController.navigate("${Ruta.CLIMA_ROUTE}?lat=$lat&lon=$lon&nombre=${ciudadSeleccionada.name}")
+            }
         }
     )
 }
+
+
 
 @Composable
 fun CiudadesView(
@@ -81,7 +95,9 @@ fun CiudadesView(
             Column {
                 estado.ciudades.forEach { ciudad ->
                     Button(
-                        onClick = { onCitySelected(ciudad.name) },
+                        onClick = {
+                            onCitySelected(ciudad.name)
+                        },
                         modifier = Modifier.padding(top = 4.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -92,4 +108,7 @@ fun CiudadesView(
         }
     }
 }
+
+
+
 

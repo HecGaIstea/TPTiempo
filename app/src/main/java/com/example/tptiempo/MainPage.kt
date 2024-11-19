@@ -23,6 +23,7 @@ class MainPage : ComponentActivity() {
     }
 }
 
+
 @Composable
 fun MainPageContent() {
     val navController = rememberNavController()
@@ -50,6 +51,10 @@ fun MainPageContent() {
         }
     }
 }
+
+
+
+
 
 
 

@@ -10,12 +10,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,11 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun CiudadView(
-    ciudadViewModel: CiudadViewModel = viewModel(),
-    onCitySelected: (String) -> Unit = {}
+    ciudadViewModel: CiudadViewModel,
+    onCitySelected: (String, Float, Float) -> Unit
 ) {
     val estado = ciudadViewModel.estado.collectAsState().value
-    val scope = rememberCoroutineScope()
     var ciudadText by remember { mutableStateOf("") }
 
     Column(
@@ -51,7 +47,7 @@ fun CiudadView(
 
         Button(
             onClick = {
-                scope.launch { ciudadViewModel.enviarIntencion(CiudadIntencion.BuscarCiudad(ciudadText)) }
+                onCitySelected(ciudadText, 0.0f, 0.0f)
             },
             modifier = Modifier.padding(top = 8.dp),
             shape = RoundedCornerShape(8.dp)
@@ -67,7 +63,11 @@ fun CiudadView(
             Column {
                 estado.ciudades.forEach { ciudad ->
                     Button(
-                        onClick = { onCitySelected(ciudad.name) },
+                        onClick = {
+                            val lat = ciudad.lat // Usar la latitud de la ciudad
+                            val lon = ciudad.lon // Usar la longitud de la ciudad
+                            onCitySelected(ciudad.name, lat, lon)
+                        },
                         modifier = Modifier.padding(top = 4.dp),
                         shape = RoundedCornerShape(8.dp)
                     ) {
@@ -80,10 +80,15 @@ fun CiudadView(
 }
 
 
+
+
 @Preview
 @Composable
 fun PreviewCiudadView() {
-    CiudadView()
+    CiudadView(
+        ciudadViewModel = TODO(),
+        onCitySelected = TODO()
+    )
 }
 
 
