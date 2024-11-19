@@ -2,8 +2,9 @@ package com.example.tptiempo.presentacion.ciudades
 
 import com.example.tptiempo.repository.modelos.Ciudad
 
-data class CiudadEstado(
-    val ciudades: List<Ciudad> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null
-)
+sealed class CiudadesEstado {
+    data object Vacio : CiudadesEstado()
+    data object Cargando : CiudadesEstado()
+    data class Resultado(val ciudades: List<Ciudad>) : CiudadesEstado()
+    data class Error(val mensaje: String) : CiudadesEstado()
+}

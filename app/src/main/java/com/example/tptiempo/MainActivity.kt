@@ -18,7 +18,6 @@ import com.example.tptiempo.ui.theme.TPTiempoTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
             TPTiempoTheme {
                 // A surface container using the 'background' color from the theme

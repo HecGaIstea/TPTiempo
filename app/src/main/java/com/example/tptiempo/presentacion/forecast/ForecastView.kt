@@ -1,72 +1,76 @@
 package com.example.tptiempo.presentacion.forecast
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+
+import com.example.tptiempo.repository.modelos.ListForecast
+
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.tptiempo.repository.modelos.ListForecast
-import com.github.PhilJay.charting.charts.LineChart
-import com.github.PhilJay.charting.data.Entry
-import com.github.PhilJay.charting.data.LineData
-import com.github.PhilJay.charting.data.LineDataSet
-import kotlinx.coroutines.launch
+import androidx.compose.material3.Card
+import androidx.compose.ui.Alignment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+
 
 @Composable
-fun ForecastGraph(forecast: List<ListForecast>) {
-    AndroidView(
-        factory = { context ->
-            LineChart(context).apply {
-                description.isEnabled = false
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        update = { chart ->
-            val entries = forecast.mapIndexed { index, listForecast ->
-                Entry(index.toFloat(), listForecast.main.temp_max)
-            }
-            val dataSet = LineDataSet(entries, "Temperatura Máxima")
-            val lineData = LineData(dataSet)
-            chart.data = lineData
-            chart.invalidate() // refresh
+fun ForecastView(
+    modifier: Modifier = Modifier,
+    state : ForecastEstado,
+    onAction: (ForecastIntencion)->Unit
+) {
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        onAction(ForecastIntencion.actualizarClima)
+    }
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        when(state){
+            is ForecastEstado.Error -> ErrorView(mensaje = state.mensaje)
+            is ForecastEstado.Exitoso -> ForecastView(state.climas)
+            ForecastEstado.Vacio -> LoadingView()
+            ForecastEstado.Cargando -> EmptyView()
         }
-    )
+        Spacer(modifier = Modifier.height(100.dp))
+    }
+}
+
+@Composable
+fun EmptyView(){
+    Text(text = "No hay nada que mostrar")
 }
 
 @Composable
-fun ForecastView(forecastViewModel: ForecastViewModel = viewModel()) {
-    val estado = forecastViewModel.estado.collectAsState().value
-    val scope = rememberCoroutineScope()
+fun LoadingView(){
+    Text(text = "Cargando")
+}
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        // Llama a ForecastGraph para mostrar el gráfico
-        if (estado.isLoading) {
-            Text("Cargando...")
-        } else if (estado.error != null) {
-            Text("Error: ${estado.error}")
-        } else if (estado.forecast.isNotEmpty()) {
-            ForecastGraph(estado.forecast)
-            LazyColumn {
-                items(estado.forecast) { item ->
-                    Text(text = "Fecha: ${item.dt}")
-                    Text(text = "Temperatura: ${item.main.temp}°C")
-                    Text(text = "Condición: ${item.weather[0].description}")
-                }
+@Composable
+fun ErrorView(mensaje: String){
+    Text(text = mensaje)
+}
+
+@Composable
+fun ForecastView(climas: List<ListForecast>){
+    LazyColumn {
+        items(items = climas) {
+            Card() {
+                Text(text = "${it.main.temp}")
             }
         }
     }
-
-    // Aquí se puede iniciar la carga del pronóstico usando el nombre de la ciudad
-    scope.launch {
-        forecastViewModel.enviarIntencion(ForecastIntencion.TraerPronostico("Buenos Aires"))
-    }
 }
+
+
+
+
+
+
+
 
