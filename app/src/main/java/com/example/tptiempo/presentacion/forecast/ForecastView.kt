@@ -54,13 +54,13 @@ fun ForecastGraph(forecast: List<ListForecast>) {
     }
 }
 
+
 @Composable
 fun ForecastView(
     forecastViewModel: ForecastViewModel,
     onAction: (ForecastIntencion) -> Unit
 ) {
     val estado = forecastViewModel.estado.collectAsState().value
-    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -73,7 +73,6 @@ fun ForecastView(
         } else if (estado.error != null) {
             Text("Error: ${estado.error}", color = Color.Red)
         } else if (estado.forecast.isNotEmpty()) {
-            ForecastGraph(estado.forecast)
             LazyColumn {
                 items(estado.forecast) { item ->
                     Text(
@@ -97,11 +96,10 @@ fun ForecastView(
     }
 
     LaunchedEffect(Unit) {
-        scope.launch {
-            onAction(ForecastIntencion.TraerPronostico("Buenos Aires"))
-        }
+        onAction(ForecastIntencion.TraerPronostico(forecastViewModel.nombre))
     }
 }
+
 
 
 @Preview

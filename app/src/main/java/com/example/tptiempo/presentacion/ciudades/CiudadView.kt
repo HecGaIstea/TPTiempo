@@ -25,7 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 @Composable
 fun CiudadView(
     ciudadViewModel: CiudadViewModel,
-    onCitySelected: (String, Float, Float) -> Unit
+    onCitySelected: (String) -> Unit
 ) {
     val estado = ciudadViewModel.estado.collectAsState().value
     var ciudadText by remember { mutableStateOf("") }
@@ -47,7 +47,7 @@ fun CiudadView(
 
         Button(
             onClick = {
-                onCitySelected(ciudadText, 0.0f, 0.0f)
+                onCitySelected(ciudadText)
             },
             modifier = Modifier.padding(top = 8.dp),
             shape = RoundedCornerShape(8.dp)
@@ -64,9 +64,7 @@ fun CiudadView(
                 estado.ciudades.forEach { ciudad ->
                     Button(
                         onClick = {
-                            val lat = ciudad.lat // Usar la latitud de la ciudad
-                            val lon = ciudad.lon // Usar la longitud de la ciudad
-                            onCitySelected(ciudad.name, lat, lon)
+                            onCitySelected(ciudad.name)
                         },
                         modifier = Modifier.padding(top = 4.dp),
                         shape = RoundedCornerShape(8.dp)
@@ -78,6 +76,7 @@ fun CiudadView(
         }
     }
 }
+
 
 
 

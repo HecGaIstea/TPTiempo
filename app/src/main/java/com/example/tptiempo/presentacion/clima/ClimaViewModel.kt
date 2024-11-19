@@ -23,6 +23,10 @@ class ClimaViewModel(
     private val _estado = MutableStateFlow(ClimaEstado())
     val estado: StateFlow<ClimaEstado> = _estado
 
+    init {
+        traerClima(lat, lon)
+    }
+
     fun enviarIntencion(intencion: ClimaIntencion) {
         when (intencion) {
             is ClimaIntencion.TraerClima -> traerClima(intencion.lat, intencion.lon)
@@ -42,6 +46,7 @@ class ClimaViewModel(
         }
     }
 }
+
 
 
 

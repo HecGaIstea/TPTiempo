@@ -14,14 +14,18 @@ import kotlinx.coroutines.launch
 class ForecastViewModel(
     private val repositorio: Repositorio,
     private val router: Router,
-    private val nombre: String
+     val nombre: String
 ) : ViewModel() {
     private val _estado = MutableStateFlow(ForecastEstado())
     val estado: StateFlow<ForecastEstado> = _estado
 
+    init {
+        traerPronostico(nombre)
+    }
+
     fun enviarIntencion(intencion: ForecastIntencion) {
         when (intencion) {
-            is ForecastIntencion.TraerPronostico -> traerPronostico(intencion.nombre)
+            is ForecastIntencion.TraerPronostico -> traerPronostico(intencion.ciudad)
         }
     }
 
@@ -30,7 +34,7 @@ class ForecastViewModel(
             _estado.value = ForecastEstado(isLoading = true)
 
             try {
-                val forecast = repositorio.traerPronostico(ciudad) // Llama al método adecuado en tu Repositorio
+                val forecast = repositorio.traerPronostico(ciudad)
                 _estado.value = ForecastEstado(forecast = forecast)
             } catch (e: Exception) {
                 _estado.value = ForecastEstado(error = e.message)
@@ -38,5 +42,7 @@ class ForecastViewModel(
         }
     }
 }
+
+
 
 

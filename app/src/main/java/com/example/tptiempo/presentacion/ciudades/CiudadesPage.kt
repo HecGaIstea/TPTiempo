@@ -23,6 +23,8 @@ import com.example.tptiempo.router.Ruta
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import com.example.tptiempo.repository.modelos.Ciudad
+
 
 @Composable
 fun CiudadesPage(
@@ -35,19 +37,25 @@ fun CiudadesPage(
         )
     )
 
+
+    val estado by viewModel.estado.collectAsState()
+    var ciudadSeleccionada by remember { mutableStateOf<Ciudad?>(null) }
+
+
+    LaunchedEffect(estado.ciudades) {
+        ciudadSeleccionada?.let { ciudad ->
+            val lat = ciudad.lat
+            val lon = ciudad.lon
+            navHostController.navigate("${Ruta.CLIMA_ROUTE}?lat=$lat&lon=$lon&nombre=${ciudad.name}")
+        }
+    }
+
     CiudadesView(
         ciudadViewModel = viewModel,
         onCitySelected = { ciudadName ->
 
             viewModel.enviarIntencion(CiudadIntencion.BuscarCiudad(ciudadName))
-
-            // Navega a ClimaPage después de actualizar el estado con la ciudad seleccionada
-            val ciudadSeleccionada = viewModel.estado.value.ciudades.find { it.name == ciudadName }
-            if (ciudadSeleccionada != null) {
-                val lat = ciudadSeleccionada.lat
-                val lon = ciudadSeleccionada.lon
-                navHostController.navigate("${Ruta.CLIMA_ROUTE}?lat=$lat&lon=$lon&nombre=${ciudadSeleccionada.name}")
-            }
+            ciudadSeleccionada = estado.ciudades.find { it.name == ciudadName }
         }
     )
 }
@@ -108,6 +116,8 @@ fun CiudadesView(
         }
     }
 }
+
+
 
 
 
