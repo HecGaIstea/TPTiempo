@@ -3,19 +3,16 @@ package com.example.tptiempo.presentacion.clima
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.tptiempo.repository.Repositorio
-import com.example.tptiempo.router.Router
 
 class ClimaViewModelFactory(
-    private val repositorio: Repositorio,
-    private val router: Router,
-    private val lat: Float,
-    private val lon: Float,
-    private val nombre: String,
+    private val lat: Double,
+    private val lon: Double,
+    private val repositorio: Repositorio
 ) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ClimaViewModel::class.java)) {
-            return ClimaViewModel(repositorio,router,lat,lon,nombre) as T
+            @Suppress("UNCHECKED_CAST")
+            return ClimaViewModel(repositorio, lat, lon) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -1,59 +1,33 @@
 package com.example.tptiempo.presentacion.forecast
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.tptiempo.repository.Repositorio
 import com.example.tptiempo.repository.modelos.ListForecast
-import com.example.tptiempo.router.Router
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-class ForecastViewModel(
-    val respositorio: Repositorio,
-    val router: Router,
-    val nombre: String
-) : ViewModel() {
+class ForecastViewModel(private val repositorio: Repositorio) : ViewModel() {
 
-    var uiState by mutableStateOf<ForecastEstado>(ForecastEstado.Vacio)
+    private val _estado = MutableStateFlow(ForecastEstado())
+    val estado: StateFlow<ForecastEstado> get() = _estado
 
-    fun ejecutar(intencion: ForecastIntencion){
-        when(intencion){
-            ForecastIntencion.actualizarClima -> traerPronostico()
+    fun enviarIntencion(intencion: ForecastIntencion) {
+        when (intencion) {
+            is ForecastIntencion.TraerPronostico -> traerPronostico(intencion.nombre)
         }
     }
 
-    fun traerPronostico() {
-        uiState = ForecastEstado.Cargando
+    private fun traerPronostico(nombre: String) {
         viewModelScope.launch {
-            try{
-                val forecast = respositorio.traerPronostico(nombre).filter {
-                    //TODO agregar logica de filtrado
-                    true
-                }
-                uiState = ForecastEstado.Exitoso(forecast)
-            } catch (exception: Exception){
-                uiState = ForecastEstado.Error(exception.localizedMessage ?: "error desconocido")
+            _estado.value = ForecastEstado(isLoading = true)
+            try {
+                val pronostico = repositorio.traerPronostico(nombre)
+                _estado.value = ForecastEstado(forecast = pronostico)
+            } catch (e: Exception) {
+                _estado.value = ForecastEstado(error = "Error al traer el pronóstico")
             }
         }
-    }
-
-}
-
-class ForecastViewModelFactory(
-    private val repositorio: Repositorio,
-    private val router: Router,
-    private val nombre: String,
-) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(ForecastViewModel::class.java)) {
-            return ForecastViewModel(repositorio,router,nombre) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

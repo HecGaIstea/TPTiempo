@@ -1,50 +1,40 @@
 package com.example.tptiempo.presentacion.clima
 
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.tptiempo.repository.Repositorio
-import com.example.tptiempo.router.Router
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 
-class ClimaViewModel(
-    val respositorio: Repositorio,
-    val router: Router,
-    val lat : Float,
-    val lon : Float,
-    val nombre: String
-) : ViewModel() {
+class ClimaViewModel(private val repositorio: Repositorio, private val lat: Double, private val lon: Double) : ViewModel() {
 
-    var uiState by mutableStateOf<ClimaEstado>(ClimaEstado.Vacio)
+    private val _estado = MutableStateFlow(ClimaEstado())
+    val estado: StateFlow<ClimaEstado> get() = _estado
 
-    fun ejecutar(intencion: ClimaIntencion){
-        when(intencion){
-            ClimaIntencion.actualizarClima -> traerClima()
+    init {
+        traerClima()
+    }
+
+    fun enviarIntencion(intencion: ClimaIntencion) {
+        when (intencion) {
+            is ClimaIntencion.TraerClima -> traerClima()
         }
     }
 
-    fun traerClima() {
-        uiState = ClimaEstado.Cargando
+    private fun traerClima() {
         viewModelScope.launch {
-            try{
-                val clima = respositorio.traerClima(lat = lat, lon = lon)
-                uiState = ClimaEstado.Exitoso(
-                    ciudad = clima.name ,
-                    temperatura = clima.main.temp,
-                    descripcion = clima.weather.first().description,
-                    st = clima.main.feels_like,
-                )
-            } catch (exception: Exception){
-                uiState = ClimaEstado.Error(exception.localizedMessage ?: "error desconocido")
+            _estado.value = ClimaEstado(isLoading = true)
+            try {
+                val clima = repositorio.traerClima(lat, lon)
+                _estado.value = ClimaEstado(clima = clima)
+            } catch (e: Exception) {
+                _estado.value = ClimaEstado(error = "Error al traer el clima")
             }
         }
     }
-
 }
-
 
 
